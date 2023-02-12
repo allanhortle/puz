@@ -1,3 +1,6 @@
 .DS_Store
+out
 node_modules
 nyt-puz
+*.pdf
+*.html
