@@ -143,7 +143,7 @@ export default class Puzzle {
     }
 
     async pdf(options: {output?: string; debugTemplate?: boolean} = {}) {
-        const {output, debugTemplate} = options;
+        const {output = `${this.data.fileName}.pdf`, debugTemplate} = options;
         const template = handlebars.compile(
             await readFile(path.join(__dirname, '../../src/template.hbs'), 'utf8')
         );
@@ -154,11 +154,12 @@ export default class Puzzle {
 
         await page.goto(`data:text/html;charset=UTF-8,${html}`);
         await page.pdf({
-            path: output ?? `${this.data.fileName}.pdf`,
+            path: output,
             format: 'A4',
             printBackground: true
         });
         await browser.close();
+        return output;
     }
 
     printSolution() {
