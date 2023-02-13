@@ -55,7 +55,7 @@ program
     });
 
 program
-    .command('answer')
+    .command('solution')
     .description('show the puzzle solution')
     .argument('<file>', '.puz file')
     .action(async (file) => {
