@@ -4,7 +4,7 @@ A cli to convert and print .puz files
 ## Install
 
 ```
-yarn install ??
+yarn install puz-cli
 ```
 
 
