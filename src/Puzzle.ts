@@ -30,7 +30,7 @@ export default class Puzzle {
         // File
         const puz = await readFile(join(process.cwd(), file));
         const raw = new Uint8Array(puz);
-        const text = new TextDecoder();
+        const text = new TextDecoder('ascii');
         const {name} = parse(file);
 
         // Properties
@@ -52,7 +52,6 @@ export default class Puzzle {
             .decode(raw.slice(stringStart))
             .split('\u0000')
             .filter((ii) => ii);
-        const notes = clues.pop() ?? '';
 
         // Helpers
         function isBlack(x: number, y: number) {
@@ -121,7 +120,7 @@ export default class Puzzle {
             title,
             author,
             copyright,
-            notes,
+            notes: '',
             width,
             height,
             boardLength
@@ -152,7 +151,7 @@ export default class Puzzle {
         const html = template(this.data);
         if (debugTemplate) await writeFile('template.html', html, 'utf8');
 
-        await page.goto(`data:text/html;charset=UTF-8,${html}`);
+        await page.goto(`data:text/html;charset=UTF-8,${encodeURIComponent(html)}`);
         await page.pdf({
             path: output,
             format: 'A4',

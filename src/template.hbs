@@ -8,6 +8,7 @@
 * {
     margin: 0;
     font-size: inherit;
+    box-sizing: border-box;
 }
 
 body {
@@ -16,7 +17,8 @@ body {
     line-height: 1.25;
     width: 210mm;
     height: 297mm;
-    padding: 1rem;
+    padding: 0 2rem;
+    padding-top: 5rem;
     display: flex;
     flex-direction: column;
     flex-wrap: wrap;
@@ -73,7 +75,7 @@ h2 {
         <h1>{{title}}</h1> 
         <h2>{{author}}</h2>
         <strong>Across</strong>
-        {{#each across}}<div><strong>{{@index}}</strong> {{{this}}}</div>{{/each}}
+        {{#each across}}<div><strong>{{@index}}</strong> {{this}}</div>{{/each}}
     </div>
     <div>
         <div class="crossword">
