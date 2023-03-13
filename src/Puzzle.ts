@@ -1,6 +1,6 @@
 import fs from 'fs';
 import {parse, join} from 'path';
-const {readFile, writeFile} = fs.promises;
+const {readFile, writeFile, lstat} = fs.promises;
 import puppeteer from 'puppeteer';
 import handlebars from 'handlebars';
 import path from 'path';
@@ -142,7 +142,11 @@ export default class Puzzle {
     }
 
     async pdf(options: {output?: string; debugTemplate?: boolean} = {}) {
-        const {output = `${this.data.fileName}.pdf`, debugTemplate} = options;
+        const {output = process.cwd(), debugTemplate} = options;
+        const stats = await lstat(output);
+        const outputPath = stats.isDirectory()
+            ? path.join(output, `${this.data.fileName}.pdf`)
+            : output;
         const template = handlebars.compile(
             await readFile(path.join(__dirname, '../../src/template.hbs'), 'utf8')
         );
@@ -153,7 +157,7 @@ export default class Puzzle {
 
         await page.goto(`data:text/html;charset=UTF-8,${encodeURIComponent(html)}`);
         await page.pdf({
-            path: output,
+            path: outputPath,
             format: 'A4',
             printBackground: true
         });
