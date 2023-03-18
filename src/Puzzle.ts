@@ -4,6 +4,13 @@ const {readFile, writeFile, lstat} = fs.promises;
 import puppeteer from 'puppeteer';
 import handlebars from 'handlebars';
 import path from 'path';
+import {Buffer} from 'buffer';
+
+function* chunks(arr, n) {
+    for (let i = 0; i < arr.length; i += n) {
+        yield arr.slice(i, i + n);
+    }
+}
 
 type PuzzleData = {
     down: string[];
@@ -28,17 +35,22 @@ export default class Puzzle {
 
     static async fromFile(file: string) {
         // File
-        const puz = await readFile(join(process.cwd(), file));
+        const puz = await readFile(file);
         const raw = new Uint8Array(puz);
-        const text = new TextDecoder('ascii');
+        const text = new TextDecoder('windows-1252');
+        const toString = (x) => text.decode(x);
+        const encoder = new TextEncoder();
         const {name} = parse(file);
+        let buf = Buffer.from(raw);
 
         // Properties
         const width = raw[0x2c];
         const height = raw[0x2d];
         const boardLength = width * height;
 
-        // Board
+        //
+        // THE BOARDS SECTION
+        //
         const boardStart = 0x34;
         const stateStart = boardStart + boardLength;
         const stringStart = stateStart + boardLength;
@@ -47,11 +59,28 @@ export default class Puzzle {
             text.decode(raw.slice(boardStart, boardStart + boardLength)).match(chunkRow) || [];
         //const state = text.decode(raw.slice(stateStart, stateStart + boardLength)).match(chunkRow);
 
-        // Strings
-        const [title, author, copyright, ...clues] = text
-            .decode(raw.slice(stringStart))
-            .split('\u0000')
-            .filter((ii) => ii);
+        //
+        // THE STRINGS SECTION
+        //
+        let stringData = buf.subarray(stringStart);
+
+        // Shift off a everything up to the next null
+        function shiftToNull() {
+            const end = stringData.indexOf(0x00);
+            const next = stringData.subarray(0, end);
+            stringData = stringData.subarray(end + 1);
+            return next;
+        }
+        function shiftClue() {
+            return toString(shiftToNull());
+        }
+
+        const title = shiftClue();
+        const author = shiftClue();
+        const copyright = shiftClue();
+
+        //
+        // Then Do The Clues
 
         // Helpers
         function isBlack(x: number, y: number) {
@@ -80,12 +109,13 @@ export default class Puzzle {
             return false;
         }
 
-        //
-        // Clues & Numbers
+        // Work through the board one by one building up the data
+        // At each valid clue location shift off a new clue from the buffer
         const across: string[] = [];
         const down: string[] = [];
         const board: {
             black: boolean;
+            circle?: boolean;
             number?: number;
         }[][] = [...Array(height)].map((_) => Array(width));
 
@@ -101,10 +131,30 @@ export default class Puzzle {
 
                 board[y][x] = {black: false};
                 if (needsAcross || needsDown) {
-                    if (needsAcross) across[currentNumber] = clues.shift() ?? '';
-                    if (needsDown) down[currentNumber] = clues.shift() ?? '';
+                    if (needsAcross) across[currentNumber] = shiftClue() ?? '';
+                    if (needsDown) down[currentNumber] = shiftClue() ?? '';
                     board[y][x] = {black: false, number: currentNumber};
                     currentNumber++;
+                }
+            }
+        }
+
+        // Process Extras
+        while (stringData.length > 0) {
+            const data = shiftToNull();
+
+            if (toString(data).match(/(GEXT)|(GRBS)/)) {
+                const title = toString(data.subarray(0, 4));
+                const length = data[4];
+                const content = stringData.subarray(2, length + 2);
+                if (title === 'GRBS') {
+                }
+                if (title === 'GEXT') {
+                    content.forEach((ii, index) => {
+                        const column = index % width;
+                        const row = Math.floor(index / width);
+                        board[row][column].circle = ii > 0;
+                    });
                 }
             }
         }

@@ -54,9 +54,22 @@ body {
 }
 
 .white {
+    position: relative;
     border: 1px solid;
     line-height: 1;
     font-size: calc(var(--column-width) / 3);
+}
+
+.circle:before {
+    content: '';
+    display: block;
+    width: calc(100% - 4px);
+    height: calc(100% - 4px);
+    border: 1px solid gray;
+    border-radius: 200rem;
+    margin: 1px;
+    position: absolute;
+    z-index: -1;
 }
 
 .down {
@@ -92,7 +105,11 @@ h2 {
                 {{#if black}}
                     <div class="black"></div>
                 {{else}}
-                    <div class="white">{{number}}</div>
+                    {{#if circle}}
+                        <div class="white circle">{{number}}</div>
+                    {{else}}
+                        <div class="white">{{number}}</div>
+                    {{/if}}
                 {{/if}}
             {{/each}}
 
