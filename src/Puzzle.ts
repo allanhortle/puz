@@ -143,11 +143,15 @@ export default class Puzzle {
         while (stringData.length > 0) {
             const data = shiftToNull();
 
-            if (toString(data).match(/(GEXT)|(GRBS)/)) {
+            if (toString(data).match(/(GEXT)|(GRBS)|(RTBL)/)) {
                 const title = toString(data.subarray(0, 4));
                 const length = data[4];
                 const content = stringData.subarray(2, length + 2);
+                if (title === 'RTBL') {
+                    // Probably dont need to parse these for printing
+                }
                 if (title === 'GRBS') {
+                    // Probably dont need to parse these for printing
                 }
                 if (title === 'GEXT') {
                     content.forEach((ii, index) => {
