@@ -216,7 +216,7 @@ export default class Puzzle {
             printBackground: true
         });
         await browser.close();
-        return output;
+        return outputPath;
     }
 
     printSolution() {

@@ -14,7 +14,7 @@ program
     .option('-d, --debugTemplate', 'export pdf template as html')
     .action(async (file, {output, debugTemplate}) => {
         const puzzle = await Puzzle.fromFile(file);
-        await puzzle.pdf({output, debugTemplate});
+        console.log(await puzzle.pdf({output, debugTemplate}));
     });
 
 program
