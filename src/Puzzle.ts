@@ -5,6 +5,7 @@ import puppeteer from 'puppeteer';
 import handlebars from 'handlebars';
 import path from 'path';
 import {Buffer} from 'buffer';
+import qrcode from 'qrcode';
 
 function* chunks(arr, n) {
     for (let i = 0; i < arr.length; i += n) {
@@ -21,6 +22,7 @@ type PuzzleData = {
     title: string;
     author: string;
     copyright: string;
+    qrCode: string;
     notes: string;
     width: number;
     height: number;
@@ -140,7 +142,7 @@ export default class Puzzle {
         }
 
         // Process Extras
-        while (stringData.length > 0) {
+        while (stringData.length > 1) {
             const data = shiftToNull();
 
             if (toString(data).match(/(GEXT)|(GRBS)|(RTBL)/)) {
@@ -163,8 +165,13 @@ export default class Puzzle {
             }
         }
 
-        //
-        // Pdf
+        // QRCode
+        const d = new Date(title);
+        const answerUrl = `https://www.xwordinfo.com/Crossword?date=${
+            d.getMonth() + 1
+        }/${d.getDate()}/${d.getFullYear()}`;
+        const qrCode = await qrcode.toDataURL(answerUrl);
+
         return new Puzzle({
             down,
             across,
@@ -177,7 +184,8 @@ export default class Puzzle {
             notes: '',
             width,
             height,
-            boardLength
+            boardLength,
+            qrCode
         });
     }
 
@@ -201,6 +209,7 @@ export default class Puzzle {
         const outputPath = stats.isDirectory()
             ? path.join(output, `${this.data.fileName}.pdf`)
             : output;
+
         const template = handlebars.compile(
             await readFile(path.join(__dirname, '../../src/template.hbs'), 'utf8')
         );
