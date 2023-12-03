@@ -1,5 +1,5 @@
 import fs from 'fs';
-import {parse, join} from 'path';
+import {parse} from 'path';
 const {readFile, writeFile, lstat} = fs.promises;
 import puppeteer from 'puppeteer';
 import handlebars from 'handlebars';
@@ -7,7 +7,7 @@ import path from 'path';
 import {Buffer} from 'buffer';
 import qrcode from 'qrcode';
 
-function* chunks(arr, n) {
+function* chunks(arr: string[], n: number) {
     for (let i = 0; i < arr.length; i += n) {
         yield arr.slice(i, i + n);
     }
@@ -40,7 +40,7 @@ export default class Puzzle {
         const puz = await readFile(file);
         const raw = new Uint8Array(puz);
         const text = new TextDecoder('windows-1252');
-        const toString = (x) => text.decode(x);
+        const toString = (x: ArrayBuffer) => text.decode(x);
         const encoder = new TextEncoder();
         const {name} = parse(file);
         let buf = Buffer.from(raw);
@@ -65,6 +65,7 @@ export default class Puzzle {
         // THE STRINGS SECTION
         //
         let stringData = buf.subarray(stringStart);
+        const rawStringData = buf.subarray(stringStart);
 
         // Shift off a everything up to the next null
         function shiftToNull() {
@@ -73,13 +74,13 @@ export default class Puzzle {
             stringData = stringData.subarray(end + 1);
             return next;
         }
-        function shiftClue() {
+        function shiftText() {
             return toString(shiftToNull());
         }
 
-        const title = shiftClue();
-        const author = shiftClue();
-        const copyright = shiftClue();
+        const title = shiftText();
+        const author = shiftText();
+        const copyright = shiftText();
 
         //
         // Then Do The Clues
@@ -133,8 +134,8 @@ export default class Puzzle {
 
                 board[y][x] = {black: false};
                 if (needsAcross || needsDown) {
-                    if (needsAcross) across[currentNumber] = shiftClue() ?? '';
-                    if (needsDown) down[currentNumber] = shiftClue() ?? '';
+                    if (needsAcross) across[currentNumber] = shiftText() ?? '';
+                    if (needsDown) down[currentNumber] = shiftText() ?? '';
                     board[y][x] = {black: false, number: currentNumber};
                     currentNumber++;
                 }
@@ -142,28 +143,39 @@ export default class Puzzle {
         }
 
         // Process Extras
-        while (stringData.length > 1) {
-            const data = shiftToNull();
+        //console.log(toString(stringData));
+        //console.log(toString(rawStringData));
+        //const end = stringData.indexOf(0x00);
+        //console.log(end);
+        //console.log(toString(stringData.subarray(0, end)));
 
-            if (toString(data).match(/(GEXT)|(GRBS)|(RTBL)/)) {
-                const title = toString(data.subarray(0, 4));
-                const length = data[4];
-                const content = stringData.subarray(2, length + 2);
-                if (title === 'RTBL') {
-                    // Probably dont need to parse these for printing
-                }
-                if (title === 'GRBS') {
-                    // Probably dont need to parse these for printing
-                }
-                if (title === 'GEXT') {
-                    content.forEach((ii, index) => {
-                        const column = index % width;
-                        const row = Math.floor(index / width);
-                        board[row][column].circle = ii > 0;
-                    });
-                }
-            }
+        const notes = shiftText();
+
+        while (stringData.length > 0) {
+            const data = shiftToNull();
+            //console.log(toString(data));
+            ////if (toString(data).match(/(GEXT)|(GRBS)|(RTBL)/)) {
+            //const title = toString(data.subarray(0, 4));
+            //const length = data[4];
+            //const content = stringData.subarray(2, length + 2);
+            //console.log({title, length, content});
+            //if (title === 'RTBL') {
+            //// Probably dont need to parse these for printing
+            //}
+            //if (title === 'GRBS') {
+            //// Probably dont need to parse these for printing
+            //}
+            //if (title === 'GEXT') {
+            //console.log({row: toString(data), title, length, content, cl: content.length});
+            //content.forEach((ii, index) => {
+            ////console.log({ii, index});
+            //const column = index % width;
+            //const row = Math.floor(index / width);
+            //board[row][column].circle = ii > 0;
+            //});
         }
+        //}
+        //}
 
         // QRCode
         const d = new Date(title);
@@ -181,7 +193,7 @@ export default class Puzzle {
             title,
             author,
             copyright,
-            notes: '',
+            notes,
             width,
             height,
             boardLength,

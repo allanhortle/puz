@@ -88,16 +88,19 @@ h1 {
 
 h2 {
     font-weight: normal;
-    margin-bottom: .5rem;
 }
 
 .heading {
     display: flex;
-    margin-bottom: .5rem;
 }
 .qr {
     height: 4rem;
     margin-top: -.4rem;
+}
+
+.notes {
+    margin-bottom: .5rem;
+    font-size: 9px;
 }
 </style>
 <body>
@@ -106,10 +109,11 @@ h2 {
         <div class="heading" />
             <div>
                 <h1>{{title}}</h1> 
-                <h2>{{author}}</h2>
             </div>
             <img class="qr" src="{{qrCode}}" />
         </div>
+        <h2>{{author}}</h2>
+        <div class="notes">{{notes}}</div>
         <strong>Across</strong>
         {{#each across}}<div class="clue"><strong>{{@index}}</strong> {{this}}</div>{{/each}}
     </div>
