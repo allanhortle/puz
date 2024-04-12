@@ -154,28 +154,32 @@ export default class Puzzle {
         while (stringData.length > 0) {
             const data = shiftToNull();
             //console.log(toString(data));
-            ////if (toString(data).match(/(GEXT)|(GRBS)|(RTBL)/)) {
-            //const title = toString(data.subarray(0, 4));
-            //const length = data[4];
-            //const content = stringData.subarray(2, length + 2);
-            //console.log({title, length, content});
-            //if (title === 'RTBL') {
-            //// Probably dont need to parse these for printing
-            //}
-            //if (title === 'GRBS') {
-            //// Probably dont need to parse these for printing
-            //}
-            //if (title === 'GEXT') {
-            //console.log({row: toString(data), title, length, content, cl: content.length});
-            //content.forEach((ii, index) => {
-            ////console.log({ii, index});
-            //const column = index % width;
-            //const row = Math.floor(index / width);
-            //board[row][column].circle = ii > 0;
-            //});
+            if (toString(data).match(/(GEXT)|(GRBS)|(RTBL)/)) {
+                const title = toString(data.subarray(0, 4));
+                const length = data[4];
+                //const content = stringData.subarray(2, length + 2);
+                //console.log({title, length, content});
+                if (title === 'RTBL') {
+                    // Probably dont need to parse these for printing
+                }
+                if (title === 'GRBS') {
+                    // Probably dont need to parse these for printing
+                }
+                if (title === 'GEXT') {
+                    //const content = stringData.subarray(2, length + 2);
+                    const content =
+                        text.decode(stringData.slice(6, 4 + boardLength)).match(chunkRow) || [];
+                    console.log(content);
+                    //console.log({row: toString(data), title, length, content, cl: content.length});
+                    //content.forEach((ii, index) => {
+                    ////console.log({ii, index});
+                    //const column = index % width;
+                    //const row = Math.floor(index / width);
+                    //board[row][column].circle = ii > 0;
+                    //});
+                }
+            }
         }
-        //}
-        //}
 
         // QRCode
         const d = new Date(title);
